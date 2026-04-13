@@ -398,3 +398,47 @@ def test_parallel_speedup_on_multi_worker():
     assert parallel_time < sequential_time * 0.80, (
         f"Parallel ({parallel_time:.2f}s) was not < 80% of sequential ({sequential_time:.2f}s)"
     )
+
+
+# ---------------------------------------------------------------------------
+# Issue #46: net_worth_histories in SimulationResult
+# ---------------------------------------------------------------------------
+
+
+def test_simulation_result_has_net_worth_histories_field():
+    """SimulationResult must have net_worth_histories with one dict per game."""
+    result = simulate_games(
+        n_games=2,
+        player_names=["Alice", "Bob"],
+        strategies=[BuyNothing(), BuyNothing()],
+        seed=42,
+    )
+    assert hasattr(result, "net_worth_histories"), (
+        "SimulationResult must have net_worth_histories field"
+    )
+    assert len(result.net_worth_histories) == 2
+
+
+def test_net_worth_histories_keyed_by_player_name():
+    """Each net_worth_histories entry must be a dict keyed by player name."""
+    result = simulate_games(
+        n_games=1,
+        player_names=["Alice", "Bob"],
+        strategies=[BuyNothing(), BuyNothing()],
+        seed=7,
+    )
+    entry = result.net_worth_histories[0]
+    assert set(entry.keys()) == {"Alice", "Bob"}
+
+
+def test_net_worth_histories_lists_are_non_empty():
+    """Each player's net worth history list must have at least one entry."""
+    result = simulate_games(
+        n_games=1,
+        player_names=["Alice", "Bob"],
+        strategies=[BuyNothing(), BuyNothing()],
+        seed=7,
+    )
+    entry = result.net_worth_histories[0]
+    for name, history in entry.items():
+        assert len(history) > 0, f"{name}: net_worth_history must not be empty"

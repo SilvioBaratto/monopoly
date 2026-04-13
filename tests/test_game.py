@@ -320,3 +320,108 @@ def test_game_result_winner_is_in_player_stats():
 
     if result.winner is not None:
         assert result.winner.name in result.player_stats
+
+
+# ---------------------------------------------------------------------------
+# 8. Net worth history (Issue #46)
+# ---------------------------------------------------------------------------
+
+
+def test_net_worth_history_length_equals_turns_played_plus_one():
+    """len(net_worth_history) must equal turns_played + 1 for every player."""
+    game = make_game(["Alice", "Bob"], [BuyNothing(), BuyNothing()], seed=42)
+    result = game.play(max_turns=50)
+
+    for name in ["Alice", "Bob"]:
+        history = result.player_stats[name].net_worth_history
+        assert len(history) == result.turns_played + 1, (
+            f"{name}: expected {result.turns_played + 1} entries, got {len(history)}"
+        )
+
+
+def test_net_worth_history_initial_value_equals_starting_cash():
+    """net_worth_history[0] must equal 1500 for all players (no properties yet)."""
+    game = make_game(["Alice", "Bob"], [BuyNothing(), BuyNothing()], seed=99)
+    result = game.play(max_turns=50)
+
+    for name in ["Alice", "Bob"]:
+        history = result.player_stats[name].net_worth_history
+        assert history[0] == 1500, (
+            f"{name}: expected initial net worth 1500, got {history[0]}"
+        )
+
+
+def test_net_worth_history_defaults_to_empty_list():
+    """PlayerStats must default net_worth_history to [] for backward compatibility."""
+    stats = PlayerStats(final_cash=1500, properties_owned=0, bankruptcy_turn=None)
+    assert stats.net_worth_history == []
+
+
+def test_compute_net_worth_cash_only():
+    """_compute_net_worth returns player.cash when the player owns no properties."""
+    from monopoly.game import _compute_net_worth
+
+    game = make_game(["Alice", "Bob"], [BuyNothing(), BuyNothing()], seed=7)
+    alice = game.state.players[0]
+    # No properties owned → net worth equals cash
+    assert _compute_net_worth(alice, game.state, game.state.board) == alice.cash
+
+
+def test_compute_net_worth_with_unmortgaged_property():
+    """_compute_net_worth adds property price for unmortgaged properties."""
+    from monopoly.game import _compute_net_worth
+    from monopoly.state import PropertyOwnership
+
+    game = make_game(["Alice", "Bob"], [BuyNothing(), BuyNothing()], seed=7)
+    alice = game.state.players[0]
+
+    # Manually assign an unmortgaged property to Alice
+    first_buyable = game.state.board.buyable_squares[0]
+    pos = first_buyable.position
+    game.state.property_ownership[pos] = PropertyOwnership(
+        owner=alice, is_mortgaged=False
+    )
+
+    expected = alice.cash + first_buyable.price
+    assert _compute_net_worth(alice, game.state, game.state.board) == expected
+
+
+def test_compute_net_worth_with_mortgaged_property():
+    """_compute_net_worth uses mortgage value for mortgaged properties."""
+    from monopoly.game import _compute_net_worth
+    from monopoly.state import PropertyOwnership
+
+    game = make_game(["Alice", "Bob"], [BuyNothing(), BuyNothing()], seed=7)
+    alice = game.state.players[0]
+
+    first_buyable = game.state.board.buyable_squares[0]
+    pos = first_buyable.position
+    game.state.property_ownership[pos] = PropertyOwnership(
+        owner=alice, is_mortgaged=True
+    )
+
+    expected = alice.cash + first_buyable.mortgage
+    assert _compute_net_worth(alice, game.state, game.state.board) == expected
+
+
+def test_compute_net_worth_mixed_properties():
+    """_compute_net_worth correctly sums cash + unmortgaged prices + mortgaged values."""
+    from monopoly.game import _compute_net_worth
+    from monopoly.state import PropertyOwnership
+
+    game = make_game(["Alice", "Bob"], [BuyNothing(), BuyNothing()], seed=7)
+    alice = game.state.players[0]
+
+    buyables = game.state.board.buyable_squares
+    sq_unmortgaged = buyables[0]
+    sq_mortgaged = buyables[1]
+
+    game.state.property_ownership[sq_unmortgaged.position] = PropertyOwnership(
+        owner=alice, is_mortgaged=False
+    )
+    game.state.property_ownership[sq_mortgaged.position] = PropertyOwnership(
+        owner=alice, is_mortgaged=True
+    )
+
+    expected = alice.cash + sq_unmortgaged.price + sq_mortgaged.mortgage
+    assert _compute_net_worth(alice, game.state, game.state.board) == expected

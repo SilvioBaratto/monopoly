@@ -1,0 +1,18 @@
+2026-04-13 19:50:20,954 INFO SDK session starting (model=claude-haiku-4-5).
+2026-04-13 19:50:26,252 INFO msg #16: RateLimitEvent
+2026-04-13 19:50:38,248 INFO msg #26: assistant (672 chars)
+```
+feat(Analytics & Simulation): implement Markov chain analysis and Monte Carlo simulation framework
+
+- Markov chain transition matrix with 43 states and stationary distribution computation
+- Monte Carlo batch simulation runner with parallel processing and reproducible sub-seeding
+- Win probability tables with Wilson confidence intervals for statistical analysis
+- Investment metrics (ROI, payback period, expected rent) and ranking system
+- Tournament support for multi-game performance analysis
+- Comprehensive test suite covering Markov/Monte Carlo cross-validation and ablation studies
+
+Closed issues: #29, #30, #31, #32, #33, #34, #35, #36, #37, #38, #39, #40
+```
+2026-04-13 19:50:38,925 INFO msg #27: ResultMessage (tokens_in=23 tokens_out=1237 is_error=False)
+2026-04-13 19:50:39,287 INFO SDK session complete (27 messages).
+2026-04-13 19:50:40,590 INFO Phase 7 complete: committed and pushed to main.

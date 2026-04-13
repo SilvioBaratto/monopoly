@@ -316,12 +316,16 @@ class SimulationResult:
             that went bankrupt (earliest first). Survivors are excluded.
         final_cash: For each game, a mapping of player name → cash held
             at game end.
+        net_worth_histories: For each game, a mapping of player name →
+            list of net worth snapshots (index 0 = start, index n = after
+            round n).
     """
 
     winner_per_game: list[str | None] = field(default_factory=list)
     turns_per_game: list[int] = field(default_factory=list)
     bankruptcy_order: list[list[str]] = field(default_factory=list)
     final_cash: list[dict[str, int]] = field(default_factory=list)
+    net_worth_histories: list[dict[str, list[int]]] = field(default_factory=list)
 
 
 def simulate_games(
@@ -381,6 +385,12 @@ def simulate_games(
         result.final_cash.append(
             {
                 name: int(game_result.player_stats[name].final_cash)
+                for name in player_names
+            }
+        )
+        result.net_worth_histories.append(
+            {
+                name: list(game_result.player_stats[name].net_worth_history)
                 for name in player_names
             }
         )

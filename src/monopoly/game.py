@@ -11,7 +11,7 @@ No rule-specific logic — delegates to turn.py, jail.py, buildings.py.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy
@@ -26,6 +26,47 @@ from monopoly.turn import resolve_turn
 from .strategies.base import Strategy
 
 
+def _compute_net_worth(player: Player, state: GameState, board: Board) -> int:
+    """Return total net worth for one player: cash + property values.
+
+    Unmortgaged properties are valued at purchase price; mortgaged ones at
+    mortgage value.  Properties are looked up via state.property_ownership,
+    never via a player attribute.
+
+    Args:
+        player: The player whose net worth to compute.
+        state: Current game state (owns property_ownership mapping).
+        board: Board instance (owns square price/mortgage data).
+
+    Returns:
+        Total net worth in dollars.
+    """
+    property_value = sum(
+        board.squares[pos].mortgage if own.is_mortgaged else board.squares[pos].price  # type: ignore[attr-defined]
+        for pos, own in state.property_ownership.items()
+        if own.owner is player
+    )
+    return player.cash + property_value
+
+
+@dataclass
+class GameHistory:
+    """Per-turn snapshot history of a Monopoly game for visualization.
+
+    Args:
+        player_names: Ordered list of player names in the game.
+        position_history: Per-turn mapping of player name → board position (0–39).
+        net_worth_history: Per-turn mapping of player name → net worth in dollars.
+        ownership_history: Per-turn mapping of board position → owner player name.
+                           Only owned squares appear; unowned squares are absent.
+    """
+
+    player_names: list[str]
+    position_history: list[dict[str, int]]
+    net_worth_history: list[dict[str, int]]
+    ownership_history: list[dict[int, str]]
+
+
 @dataclass
 class PlayerStats:
     """End-of-game statistics for one player.
@@ -34,11 +75,15 @@ class PlayerStats:
         final_cash: Cash held at game end.
         properties_owned: Number of properties owned at game end.
         bankruptcy_turn: Turn on which the player went bankrupt, or None.
+        net_worth_history: Net worth snapshot per round (index 0 = start of
+            game, index n = after round n). Defaults to [] for backward
+            compatibility.
     """
 
     final_cash: int
     properties_owned: int
     bankruptcy_turn: int | None
+    net_worth_history: list[int] = field(default_factory=list)
 
 
 @dataclass
@@ -108,6 +153,11 @@ class Game:
             GameResult with winner, turns played, and per-player stats.
         """
         bankruptcy_turns: dict[str, int] = {}
+        net_worth_snapshots: dict[str, list[int]] = {
+            p.name: [] for p in self.state.players
+        }
+
+        self._record_net_worth_snapshot(net_worth_snapshots)
 
         while self.state.turn_count < max_turns:
             if len(self.state.active_players) <= 1:
@@ -115,8 +165,9 @@ class Game:
 
             self._play_full_round(bankruptcy_turns)
             self.state.turn_count += 1
+            self._record_net_worth_snapshot(net_worth_snapshots)
 
-        return self._build_result(bankruptcy_turns)
+        return self._build_result(bankruptcy_turns, net_worth_snapshots)
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -236,7 +287,85 @@ class Game:
         except Exception:
             pass  # Building phase errors should not crash the game
 
-    def _build_result(self, bankruptcy_turns: dict[str, int]) -> GameResult:
+    def _record_net_worth_snapshot(self, snapshots: dict[str, list[int]]) -> None:
+        """Append a net worth snapshot for every player to the history dict.
+
+        Args:
+            snapshots: Mutable dict mapping player name → history list.
+        """
+        board = self.state.board
+        for player in self.state.players:
+            snapshots[player.name].append(_compute_net_worth(player, self.state, board))
+
+    def play_with_history(self, max_turns: int = 200) -> "GameHistory":
+        """Run a game and return a per-turn GameHistory for animation.
+
+        Records position, net worth, and property ownership after every round.
+
+        Args:
+            max_turns: Maximum full rounds before stopping.
+
+        Returns:
+            GameHistory with per-turn snapshots.
+        """
+        position_history: list[dict[str, int]] = []
+        net_worth_history: list[dict[str, int]] = []
+        ownership_history: list[dict[int, str]] = []
+        bankruptcy_turns: dict[str, int] = {}
+        net_worth_snapshots: dict[str, list[int]] = {
+            p.name: [] for p in self.state.players
+        }
+
+        self._record_net_worth_snapshot(net_worth_snapshots)
+        self._append_history_snapshots(
+            position_history, net_worth_history, ownership_history
+        )
+
+        while self.state.turn_count < max_turns:
+            if len(self.state.active_players) <= 1:
+                break
+            self._play_full_round(bankruptcy_turns)
+            self.state.turn_count += 1
+            self._record_net_worth_snapshot(net_worth_snapshots)
+            self._append_history_snapshots(
+                position_history, net_worth_history, ownership_history
+            )
+
+        return GameHistory(
+            player_names=[p.name for p in self.state.players],
+            position_history=position_history,
+            net_worth_history=net_worth_history,
+            ownership_history=ownership_history,
+        )
+
+    def _append_history_snapshots(
+        self,
+        position_history: list[dict[str, int]],
+        net_worth_history: list[dict[str, int]],
+        ownership_history: list[dict[int, str]],
+    ) -> None:
+        """Append current state snapshots to per-turn history lists."""
+        board = self.state.board
+        position_history.append({p.name: p.position for p in self.state.players})
+        net_worth_history.append(
+            {
+                p.name: _compute_net_worth(p, self.state, board)
+                for p in self.state.players
+            }
+        )
+        ownership_history.append(
+            {
+                pos: own.owner.name
+                for pos, own in self.state.property_ownership.items()
+                if own.owner is not None
+            }
+        )
+
+    def _build_result(
+        self,
+        bankruptcy_turns: dict[str, int],
+        net_worth_snapshots: dict[str, list[int]] | None = None,
+    ) -> GameResult:
         """Construct the GameResult from final game state.
 
         When exactly one player remains, they are the winner.
@@ -245,6 +374,7 @@ class Game:
 
         Args:
             bankruptcy_turns: Recorded bankruptcy turn numbers.
+            net_worth_snapshots: Per-player net worth history (optional).
 
         Returns:
             Populated GameResult.
@@ -257,6 +387,7 @@ class Game:
         else:
             winner = None
 
+        history = net_worth_snapshots or {}
         stats: dict[str, PlayerStats] = {}
         for player in self.state.players:
             owned = sum(
@@ -266,6 +397,7 @@ class Game:
                 final_cash=player.cash,
                 properties_owned=owned,
                 bankruptcy_turn=bankruptcy_turns.get(player.name),
+                net_worth_history=history.get(player.name, []),
             )
 
         return GameResult(

@@ -28,3 +28,6 @@ env/
 .idea/
 .vscode/
 *.swp
+
+# Generated figures / video assets
+figures/

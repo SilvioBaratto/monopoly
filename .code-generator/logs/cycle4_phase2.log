@@ -1,0 +1,390 @@
+2026-04-13 19:56:42,640 INFO Phase 2: reviewing issue #41 (agent=python-pro).
+2026-04-13 19:56:42,645 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 19:56:49,218 INFO msg #16: RateLimitEvent
+2026-04-13 19:56:54,612 INFO msg #18: assistant (94 chars)
+Now let me check the current `pyproject.toml` to understand the existing dependency structure:
+2026-04-13 19:57:13,293 INFO msg #24: assistant (178 chars)
+The issue is well-structured. Let me verify one more thing — whether `hypothesis` being in both `dependencies` and `test` optional dependencies is something that should be noted:
+2026-04-13 19:57:26,248 INFO msg #27: assistant (277 chars)
+```
+Issue #41: OK
+Reason: Clear, testable, correctly scoped foundational issue. Single file edit with 4 concrete acceptance criteria. All downstream Cycle 4 issues (#42–#50) depend on it.
+Actions taken: Added review comment confirming the issue is ready for implementation.
+```
+2026-04-13 19:57:26,658 INFO msg #28: ResultMessage (tokens_in=6 tokens_out=1322 is_error=False)
+2026-04-13 19:57:26,949 INFO SDK session complete (28 messages).
+2026-04-13 19:57:26,952 INFO Phase 2: issue #41 reviewed.
+2026-04-13 19:57:26,952 INFO Phase 2: reviewing issue #42 (agent=python-pro).
+2026-04-13 19:57:26,954 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 19:57:33,043 INFO msg #16: RateLimitEvent
+2026-04-13 19:58:10,450 INFO msg #29: assistant (952 chars)
+Now I have a comprehensive view of the issue. Let me assess it:
+
+**Clarity:** ✅ Title is precise, goal is self-contained, context explains the "why" (centralization to avoid duplication).
+
+**Testability:** ✅ All criteria are concrete and verifiable — dimensions, palette count, label coverage, function signatures.
+
+**Design principles:** ✅ SRP (only plot config), KISS (two simple helpers + constants), DRY (centralizes what would be duplicated), YAGNI (no speculative features).
+
+**Dependencies:** ✅ #41 is the correct and only prerequisite.
+
+**Scope:** ✅ One module (~100-150 lines), two functions, constants, and tests — well within a single session.
+
+One minor gap: the acceptance criteria say "palette has 10+ distinct entries" but the Wong (2011) palette only has 8 colors. The implementation notes list 10 groups (8 color groups + Ferrovie + Società), so the palette needs at least 2 additional colors beyond Wong's 8. This should be clarified.
+2026-04-13 19:58:22,879 INFO msg #32: assistant (356 chars)
+```
+Issue #42: OK
+Reason: Clear, testable, correctly scoped single-responsibility issue. Dependencies are correct. Minor note about palette needing 2 extra colors beyond Wong's 8 to cover all 10 groups — flagged in comment for implementer awareness.
+Actions taken: Added review comment confirming approval with a clarification note on palette coverage.
+```
+2026-04-13 19:58:23,223 INFO msg #33: ResultMessage (tokens_in=7 tokens_out=2150 is_error=False)
+2026-04-13 19:58:23,555 INFO SDK session complete (33 messages).
+2026-04-13 19:58:23,558 INFO Phase 2: issue #42 reviewed.
+2026-04-13 19:58:23,559 INFO Phase 2: reviewing issue #43 (agent=python-pro).
+2026-04-13 19:58:23,561 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 19:58:32,217 INFO msg #16: RateLimitEvent
+2026-04-13 19:58:37,215 INFO msg #18: assistant (95 chars)
+Now let me check the existing codebase to verify dependencies and understand the current state:
+2026-04-13 19:58:55,943 INFO msg #27: assistant (1927 chars)
+Good. Now I have a full picture. Let me review the issue against all criteria.
+
+**Review findings:**
+
+1. **Clarity** — Title and goal are clear. Context is well-explained.
+
+2. **Testability** — Acceptance criteria are mostly concrete. However:
+   - "Unit test verifies function runs without error and produces a valid PNG file" — what does "valid" mean? Should specify: file exists, is non-empty, is readable by PIL/matplotlib.
+   - Good: dimensions check is explicit (1920×1080).
+
+3. **Design Principles:**
+   - **SRP**: The issue covers a single visualization function — good.
+   - **TDD**: Acceptance criteria mention tests but don't explicitly say "tests written before implementation" — should be clarified.
+   - **YAGNI/KISS**: The board layout description is reasonable but the implementation notes suggest specific matplotlib patches — this is fine as guidance, not over-engineering.
+
+4. **Dependencies** — #42 is correctly declared and still OPEN. The function signature accepts `distribution` (numpy array) and `board` (Board instance), consistent with `markov.py` API.
+
+5. **Scope** — Single function + tests. Appropriate for one work session.
+
+6. **Issues found:**
+   - The function signature says `plot_board_heatmap(distribution, board, output_path)` but doesn't mention using the `save_figure()` helper from #42 — it should, to avoid DRY violation.
+   - Board layout note has an error: "positions 0-9 bottom row (left→right), 10-19 left column (bottom→top), 20-29 top row (right→left), 30-39 right column (top→bottom)" — position 10 is "Jail/Just Visiting" which is bottom-left corner, so the left column should go bottom→top starting at 10. This is actually correct.
+   - Missing: no mention of handling the case where distribution has fewer/more than 40 elements (input validation).
+   - The acceptance criterion "Output at 1920×1080 PNG" should delegate to `save_figure()` from #42 rather than reimplementing.
+2026-04-13 19:59:19,953 INFO msg #32: assistant (419 chars)
+```
+Issue #43: UPDATED
+Reason: Missing input validation, DRY violation risk with #42, vague test criteria
+Actions taken: Updated body with input validation acceptance criterion, explicit DRY requirement to reuse create_figure()/save_figure() from #42, clarified test specificity (PIL-readable, ValueError test), added TDD requirement, and noted file ownership from #42. Added review comment documenting all changes.
+```
+2026-04-13 19:59:20,374 INFO msg #33: ResultMessage (tokens_in=7 tokens_out=2421 is_error=False)
+2026-04-13 19:59:20,722 INFO SDK session complete (33 messages).
+2026-04-13 19:59:20,726 INFO Phase 2: issue #43 reviewed.
+2026-04-13 19:59:20,727 INFO Phase 2: reviewing issue #44 (agent=python-pro).
+2026-04-13 19:59:20,729 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 19:59:26,339 INFO msg #16: RateLimitEvent
+2026-04-13 19:59:31,389 INFO msg #18: assistant (115 chars)
+Now let me check what `metrics.roi_ranking_table()` returns and what the shared plot config (issue #42) looks like:
+2026-04-13 19:59:53,559 INFO msg #35: assistant (950 chars)
+Now I have a clear picture. Let me analyze the issue:
+
+**Key findings:**
+
+1. **DataFrame has 7 columns** (`_RENT_COLUMNS = ["base", "monopoly", "1h", "2h", "3h", "4h", "hotel"]`), but the issue says "6 development levels" and lists "base, 1h, 2h, 3h, 4h, hotel" — **it omits the "monopoly" level**. The issue body even says "Exclude 'monopoly' level... or include it as a 7th bar if space allows." This ambiguity needs to be resolved as a concrete decision.
+
+2. **The issue says "8 color groups + railroads"** but `_COLOR_GROUPS` has exactly 8 groups, and `roi_ranking_table` adds "railroad" as a 9th row. That's correct — 9 groups total.
+
+3. **Italian labels** — the issue says "Italian names" on x-axis but doesn't specify the mapping. This depends on #42 (shared config), which is still OPEN.
+
+4. **The acceptance criteria mention "6 development levels per group"** but the actual data has 7 levels. This is inconsistent.
+
+Let me update the issue:
+2026-04-13 20:00:23,690 INFO msg #40: assistant (420 chars)
+```
+Issue #44: UPDATED
+Reason: Inaccurate development level count (said 6, actual is 7), missing NaN handling for railroads, weak test criteria, ambiguous group count
+Actions taken: Updated body to fix level count (6→7), clarified 9 groups, added NaN handling criterion, added structural test criterion, added explicit function signature, noted plots.py must be created. Added review comment documenting all changes.
+```
+2026-04-13 20:00:24,170 INFO msg #41: ResultMessage (tokens_in=9 tokens_out=2723 is_error=False)
+2026-04-13 20:00:24,548 INFO SDK session complete (41 messages).
+2026-04-13 20:00:24,553 INFO Phase 2: issue #44 reviewed.
+2026-04-13 20:00:24,554 INFO Phase 2: reviewing issue #45 (agent=python-pro).
+2026-04-13 20:00:24,556 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:00:31,906 INFO msg #14: assistant (99 chars)
+
+
+I'll review GitHub Issue #45 for the Monopoly project. Let me start by reading the issue details.
+2026-04-13 20:00:32,604 INFO msg #16: RateLimitEvent
+2026-04-13 20:00:40,916 INFO msg #19: assistant (78 chars)
+Now let me check the existing codebase to verify the dependencies and context.
+2026-04-13 20:01:01,133 INFO msg #30: assistant (166 chars)
+Good, the `win_probability_table()` function exists and returns exactly the columns described in the issue. Now let me verify the strategies mentioned actually exist.
+2026-04-13 20:01:06,617 INFO msg #33: assistant (265 chars)
+All six strategies listed in the issue (BuyEverything, BuyNothing, ColorTargeted, ThreeHousesRush, JailCamper, Trader) correspond to actual files. The issue looks well-structured. Let me verify there's no existing `plots.py` or test file that might cause conflicts.
+2026-04-13 20:01:19,931 INFO msg #36: assistant (1406 chars)
+No existing implementation. The issue is clean. Now let me assess against all review criteria:
+
+**Clarity:** ✅ Title is specific ("win rate curves per strategy with Wilson confidence intervals"). Goal and context are self-contained. The input DataFrame columns are documented.
+
+**Testability:** The acceptance criteria are mostly concrete. However, "Unit test verifies function runs without error and produces a valid PNG" is minimal — it should also verify the plot contains the expected number of lines (one per strategy) and the baseline line.
+
+**SOLID/Design:** ✅ Single responsibility (one plot function). No speculative features. Simple approach using matplotlib.
+
+**Dependencies:** ✅ Correctly depends on #42 (shared plot config). #42 is still OPEN, which is fine.
+
+**Scope:** ✅ Appropriately sized for one work session — a single plot function + tests.
+
+**Minor improvements needed:**
+1. The test criterion is too weak — should verify plot content (number of lines, legend entries), not just "runs without error"
+2. Missing edge case: what if the DataFrame is empty or has only one strategy?
+3. The "significant" column in the DataFrame is mentioned in context but no acceptance criterion says how to visually highlight significant strategies (the context says "visually highlight which strategies significantly outperform" but no AC specifies how)
+
+Let me update the issue with these improvements.
+2026-04-13 20:01:51,529 INFO msg #41: assistant (511 chars)
+```
+Issue #45: UPDATED
+Reason: Acceptance criteria needed strengthening — tests were too shallow, error handling was missing, and visual distinction for significant strategies was unspecified.
+Actions taken:
+  - Added 3 specific unit test criteria (line count, legend entries, empty DataFrame error)
+  - Added ValueError acceptance criterion for empty input
+  - Clarified how significant strategies are visually distinguished (bolder linewidth)
+  - Added Agg backend implementation note for headless testing
+```
+2026-04-13 20:01:51,982 INFO msg #42: ResultMessage (tokens_in=10 tokens_out=2603 is_error=False)
+2026-04-13 20:01:52,308 INFO SDK session complete (42 messages).
+2026-04-13 20:01:52,311 INFO Phase 2: issue #45 reviewed.
+2026-04-13 20:01:52,312 INFO Phase 2: reviewing issue #46 (agent=python-pro).
+2026-04-13 20:01:52,313 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:01:58,282 INFO msg #16: RateLimitEvent
+2026-04-13 20:02:42,731 INFO msg #37: assistant (977 chars)
+Now I have a clear picture. Let me assess the issue:
+
+**Key findings:**
+1. The net worth formula in the implementation notes references `sq.price` and `sq.mortgage` — these map correctly to `BuyableSquare.price` and `BuyableSquare.mortgage`, and `PropertyOwnership.is_mortgaged` tracks mortgage state. ✅
+2. **Inconsistency in acceptance criteria**: Criterion says "history recorded at the end of each full round in `_play_full_round()`" but also "verify net worth at turn 0 = starting cash (1500)". If recording is only at the end of each round, there's no turn-0 entry before the first round modifies state. The initial snapshot needs to be recorded *before* the first round.
+3. The `PropertyOwnership` doesn't directly reference the `BuyableSquare` — need to clarify how to look up the square from ownership. The implementation notes say `player.properties` but `Player` doesn't seem to have a `properties` attribute directly.
+
+Let me verify player's property access pattern:
+2026-04-13 20:02:51,170 INFO msg #42: assistant (361 chars)
+Good. Now I have the full picture. The property ownership is in `GameState.property_ownership` (position → PropertyOwnership), not on `Player` directly. The implementation notes say `player.properties` which doesn't exist — the implementer would need to iterate `state.property_ownership` and filter by owner.
+
+Let me now update the issue with the improvements:
+2026-04-13 20:03:37,043 INFO msg #47: assistant (611 chars)
+```
+Issue #46: UPDATED
+Reason: Three issues found — (1) turn-0 snapshot timing inconsistency, (2) incorrect property access pattern in implementation notes, (3) missing backward-compatible default and helper function extraction criterion.
+Actions taken: Updated issue body with corrected net worth formula using actual GameState.property_ownership API, clarified turn-0 recording before main loop, added len(net_worth_history) == turns_played + 1 invariant, added _compute_net_worth helper extraction criterion, added default_factory for backward compatibility, added review comment summarizing all changes.
+```
+2026-04-13 20:03:37,385 INFO msg #48: ResultMessage (tokens_in=13 tokens_out=4172 is_error=False)
+2026-04-13 20:03:37,710 INFO SDK session complete (48 messages).
+2026-04-13 20:03:37,715 INFO Phase 2: issue #46 reviewed.
+2026-04-13 20:03:37,716 INFO Phase 2: reviewing issue #47 (agent=python-pro).
+2026-04-13 20:03:37,718 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:03:43,824 INFO msg #16: RateLimitEvent
+2026-04-13 20:04:06,687 INFO msg #31: assistant (73 chars)
+Now I have a clear picture. Let me review the issue and provide feedback.
+2026-04-13 20:04:39,201 INFO msg #36: assistant (678 chars)
+```
+Issue #47: UPDATED
+Reason: Acceptance criteria needed specificity improvements for testability and edge case coverage.
+Actions taken:
+  - Added explicit AC for bankrupt player line behavior (was only in implementation notes)
+  - Added edge case ACs: empty history, single player, zero-length lists
+  - Made PNG validation AC specific: file exists, size > 0, PNG magic bytes, 1920×1080 dimensions
+  - Added dedicated test ACs for bankrupt player mock data and edge cases
+  - Added $0 horizontal reference line as explicit AC (was only a suggestion)
+  - Added note about keeping function decoupled from GameResult types (SRP)
+  - Added review comment summarizing rationale
+```
+2026-04-13 20:04:39,618 INFO msg #37: ResultMessage (tokens_in=9 tokens_out=2304 is_error=False)
+2026-04-13 20:04:39,945 INFO SDK session complete (37 messages).
+2026-04-13 20:04:39,949 INFO Phase 2: issue #47 reviewed.
+2026-04-13 20:04:39,949 INFO Phase 2: reviewing issue #48 (agent=python-pro).
+2026-04-13 20:04:39,951 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:04:45,346 INFO msg #14: assistant (130 chars)
+
+
+I'll review GitHub issue #48 for the Monopoly project. Let me start by reading the issue and understanding the codebase context.
+2026-04-13 20:04:46,661 INFO msg #17: RateLimitEvent
+2026-04-13 20:04:52,616 INFO msg #21: assistant (89 chars)
+Now let me check the existing codebase to understand the current state of relevant files:
+2026-04-13 20:05:18,420 INFO msg #33: assistant (1152 chars)
+Now I have a comprehensive understanding of the issue. Let me analyze it:
+
+**Key findings:**
+
+1. **Scope is too large** — This issue combines: board ring layout rendering, player token animation, property ownership coloring, net worth sidebar, MP4/GIF export, and potentially a `GameHistory` dataclass. That's easily 2-3 work sessions.
+
+2. **SRP violation** — The issue mixes game engine data model changes (`GameHistory` dataclass, `position_history` on `GameResult`) with visualization code. Those are separate responsibilities.
+
+3. **Hidden dependency on #43** — The issue says "reuse the coordinate system from the heatmap (#43)" but doesn't list #43 as a dependency. Since #43 is also OPEN, this is a missing dependency.
+
+4. **Scope creep into #46** — The note "Extend issue #46 to also track per-turn positions" pushes engine changes into a visualization issue.
+
+5. **Clean code feasibility** — A full animation system with board rendering, token animation, sidebar charts, and export logic cannot fit in methods < 10 lines / classes < 50 lines / files < 500-600 lines without decomposition into multiple modules/issues.
+
+Let me update the issue:
+2026-04-13 20:06:07,528 INFO msg #40: assistant (688 chars)
+```
+Issue #48: UPDATED
+Reason: Missing dependency (#43), scope creep into game engine (#46), vague acceptance criteria, and no decomposition guidance for clean code compliance.
+Actions taken:
+  - Added #43 as explicit dependency (board ring coordinates)
+  - Removed GameHistory/position_history definition from this issue (belongs in #46)
+  - Made acceptance criteria specific: return type, frame sampling limit (≤200), per-format export tests with pytest.importorskip
+  - Added decomposition guidance with named helper functions for <10-line methods
+  - Raised priority to high
+  - Added review comment noting #46 needs to be updated to include position_history and ownership_history
+```
+2026-04-13 20:06:07,892 INFO msg #41: ResultMessage (tokens_in=8 tokens_out=3396 is_error=False)
+2026-04-13 20:06:08,219 INFO SDK session complete (41 messages).
+2026-04-13 20:06:08,224 INFO Phase 2: issue #48 reviewed.
+2026-04-13 20:06:08,224 INFO Phase 2: reviewing issue #49 (agent=python-pro).
+2026-04-13 20:06:08,226 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:06:14,372 INFO msg #16: RateLimitEvent
+2026-04-13 20:06:19,372 INFO msg #18: assistant (72 chars)
+Now let me check the existing codebase to verify dependencies and scope:
+2026-04-13 20:06:41,930 INFO msg #34: assistant (1072 chars)
+Now I have a thorough understanding of the issue and codebase. Let me assess:
+
+**Clarity:** ✅ Good — title is clear, goal well-described, context references existing modules.
+
+**Testability:** ✅ Acceptance criteria are concrete and testable via `CliRunner`.
+
+**Design principles:**
+- **SRP:** The issue covers a single concern (CLI layer) — ✅
+- **TDD:** Tests mentioned but not explicitly TDD-first — minor gap
+- **YAGNI/KISS:** Clean, no speculative features — ✅
+- **DRY:** Uses existing modules, no duplication — ✅
+
+**Dependencies:** Issue #41 (add dependencies) is still OPEN — correctly declared.
+
+**Scope:** The issue asks for 3 CLI commands + tests + pyproject.toml entry. This is reasonable for a single work session. However, I notice the `--strategy` option says "repeatable, default all strategies" — but `simulate_games` requires strategies matching the player count, not an arbitrary list. This needs clarification.
+
+Also, the `simulate` command needs to map `--players` count to player names, which isn't specified. Let me check if there's a pattern for that.
+2026-04-13 20:07:21,340 INFO msg #39: assistant (352 chars)
+```
+Issue #49: UPDATED
+Reason: Five gaps identified — ambiguous --strategy semantics, missing player name generation spec, no error handling criterion, narrow test scope, missing STRATEGY_REGISTRY reference.
+Actions taken: Updated issue body with clarified acceptance criteria and implementation notes; added review comment documenting all changes.
+```
+2026-04-13 20:07:21,722 INFO msg #40: ResultMessage (tokens_in=8 tokens_out=2880 is_error=False)
+2026-04-13 20:07:22,055 INFO SDK session complete (40 messages).
+2026-04-13 20:07:22,059 INFO Phase 2: issue #49 reviewed.
+2026-04-13 20:07:22,060 INFO Phase 2: reviewing issue #50 (agent=python-pro).
+2026-04-13 20:07:22,062 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:07:28,634 INFO msg #16: RateLimitEvent
+2026-04-13 20:08:12,491 INFO msg #23: assistant (1363 chars)
+Now let me assess the issue against the review criteria:
+
+**Clarity** ✅ — Title is precise, goal is clear, context explains the dispatcher pattern well.
+
+**Testability** ✅ — Each acceptance criterion maps to a concrete CLI invocation with verifiable output. Good use of specific flags and file paths.
+
+**Design Principles:**
+- **SRP**: Borderline. The issue adds both `plot` (with 4 sub-figures) and `export-video`. However, both are thin CLI wrappers that delegate to existing functions, so modifying a single `cli.py` file is reasonable.
+- **KISS/DRY**: The dispatcher pattern (enum/dict mapping) is the simplest approach. ✅
+- **YAGNI**: No speculative features. ✅
+
+**Dependencies** ✅ — All 6 dependencies are correctly declared and all are OPEN. This issue correctly sits at the end of the dependency chain.
+
+**Scope** — Moderate concern. 5 command implementations + tests, but each is a thin orchestration layer (parse args → compute → plot → save). Acceptable for one session given the repetitive pattern.
+
+**Minor issues found:**
+1. The `--n-games` parameter appears only in the `win-rate` criterion but isn't documented as a general option or clarified for other commands that may need simulation counts (e.g., `roi`).
+2. No criterion for what happens when the output directory doesn't exist (implementation notes mention creating it, but no AC covers it).
+2026-04-13 20:08:45,064 INFO msg #28: assistant (330 chars)
+```
+Issue #50: UPDATED
+Reason: Acceptance criteria had minor gaps — missing explicit ACs for --n-games availability on batch commands, output directory auto-creation, and net-worth single-game clarification.
+Actions taken: Updated issue body with 4 improved/added acceptance criteria; added review comment documenting changes.
+```
+2026-04-13 20:08:45,490 INFO msg #29: ResultMessage (tokens_in=6 tokens_out=2973 is_error=False)
+2026-04-13 20:08:45,728 INFO SDK session complete (29 messages).
+2026-04-13 20:08:45,732 INFO Phase 2: issue #50 reviewed.
+2026-04-13 20:08:45,732 INFO Phase 2: reviewing issue #51 (agent=python-pro).
+2026-04-13 20:08:45,734 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:08:52,585 INFO msg #16: RateLimitEvent
+2026-04-13 20:08:59,300 INFO msg #19: assistant (104 chars)
+Now let me check the existing codebase to verify dependencies and understand what's already implemented:
+2026-04-13 20:09:29,920 INFO msg #27: assistant (74 chars)
+Now let me check if issue #42 (shared plot config) exists and is relevant:
+2026-04-13 20:09:36,385 INFO msg #30: assistant (167 chars)
+The script imports from `monopoly.plots`, which is created by #42 — but #42 is not listed as a dependency. Let me also check if issue #50 (CLI viz export) is relevant:
+2026-04-13 20:09:41,022 INFO msg #33: assistant (55 chars)
+Now I have a complete picture. Let me update the issue:
+2026-04-13 20:10:34,520 INFO msg #38: assistant (597 chars)
+```
+Issue #51: UPDATED
+Reason: Missing dependency (#42), vague test criteria, ambiguous seed strategy, implicit figure filenames
+Actions taken:
+  - Added #42 as missing dependency (plots.py foundation)
+  - Made test criteria explicit (test_narrative_script.py with 3 concrete verifications)
+  - Listed figure filenames in acceptance criteria
+  - Clarified seed strategy (random.seed + numpy.random.seed)
+  - Added file size mitigation guidance (_narrative_text.py extraction)
+  - Added function naming convention (section_01_*, section_02_*, …)
+  - Added review comment documenting all changes
+```
+2026-04-13 20:10:34,935 INFO msg #39: ResultMessage (tokens_in=9 tokens_out=3229 is_error=False)
+2026-04-13 20:10:35,259 INFO SDK session complete (39 messages).
+2026-04-13 20:10:35,264 INFO Phase 2: issue #51 reviewed.
+2026-04-13 20:10:35,264 INFO Phase 2: reviewing issue #52 (agent=python-pro).
+2026-04-13 20:10:35,267 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:10:40,894 INFO msg #16: RateLimitEvent
+2026-04-13 20:11:04,737 INFO msg #23: assistant (1057 chars)
+Now let me review the issue against all criteria:
+
+**Clarity:** ✅ Title is clear. Goal, context, and implementation notes are well-written. The 10-section breakdown provides excellent structure.
+
+**Testability:** ⚠️ One acceptance criterion is problematic:
+- "The code respects SOLID (SRP, OCP, LSP, ISP, DIP), clean code (methods < 10 lines, classes < 50 lines, files < 500-600 lines), TDD, YAGNI/KISS/DRY" — this is a **markdown document**, not code. SOLID, TDD, method/class line limits are completely irrelevant.
+- "Markdown formatting is clean and readable" is vague — should be more specific.
+
+**Design principles:** The task itself is well-scoped (SRP — single document), but the boilerplate SOLID criterion was copy-pasted from code-oriented issues and doesn't apply here.
+
+**Dependencies:** ✅ #51 is correctly declared. No missing dependencies.
+
+**Scope:** ✅ Appropriately sized for one work session.
+
+**Agent assignment:** ⚠️ `python-pro` agent is wrong for a pure documentation/content task — this writes no Python code.
+
+Let me update the issue:
+2026-04-13 20:11:39,317 INFO msg #28: assistant (479 chars)
+```
+Issue #52: UPDATED
+Reason: Acceptance criteria contained irrelevant SOLID/clean-code/TDD requirements copy-pasted from code-oriented issues — meaningless for a Markdown document. Formatting criterion was vague.
+Actions taken: Removed SOLID/TDD/clean-code criterion, replaced vague "clean and readable" with concrete structural requirements (H2 headers, blockquotes, relative paths, summary table), added tone criterion, removed `solid-principles` skill from agent config.
+```
+2026-04-13 20:11:39,741 INFO msg #29: ResultMessage (tokens_in=6 tokens_out=2295 is_error=False)
+2026-04-13 20:11:40,059 INFO SDK session complete (29 messages).
+2026-04-13 20:11:40,063 INFO Phase 2: issue #52 reviewed.
+2026-04-13 20:11:40,064 INFO Phase 2: reviewing issue #53 (agent=python-pro).
+2026-04-13 20:11:40,066 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 20:11:46,081 INFO msg #16: RateLimitEvent
+2026-04-13 20:11:51,637 INFO msg #18: assistant (76 chars)
+Now let me check what exists in the repo to verify dependencies and context:
+2026-04-13 20:12:12,496 INFO msg #24: assistant (806 chars)
+Now I have a clear picture. Let me review against the criteria:
+
+**Findings:**
+
+1. **SOLID/Clean code criterion is irrelevant** — A Makefile has no Python methods, classes, or files. The boilerplate criterion about "methods < 10 lines, classes < 50 lines" doesn't apply.
+
+2. **Missing acceptance criterion** — The implementation notes mention adding `figures/` to `.gitignore`, but this isn't listed as an acceptance criterion. It should be.
+
+3. **Dependency #51 is still OPEN** — Correct dependency declared, but worth noting the transitive chain (the narrative script depends on visualization modules from #43–#48).
+
+4. **Scope is appropriate** — A Makefile with ~5 targets is a single focused work session.
+
+5. **Clarity is good** — Title and goal are clear and self-contained.
+
+Let me update the issue:
+2026-04-13 20:12:32,311 INFO msg #29: assistant (325 chars)
+```
+Issue #53: UPDATED
+Reason: Irrelevant SOLID/clean-code criterion for a Makefile; missing .gitignore acceptance criterion; test criterion too generic.
+Actions taken: Updated issue body to remove inapplicable criteria, promoted .gitignore update to AC, clarified test and help target expectations. Added review comment.
+```
+2026-04-13 20:12:32,676 INFO msg #30: ResultMessage (tokens_in=6 tokens_out=2178 is_error=False)
+2026-04-13 20:12:33,005 INFO SDK session complete (30 messages).
+2026-04-13 20:12:33,010 INFO Phase 2: issue #53 reviewed.
