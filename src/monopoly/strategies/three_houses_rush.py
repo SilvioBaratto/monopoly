@@ -16,11 +16,23 @@ _TARGET_HOUSES = 3
 
 
 class ThreeHousesRush(Strategy):
-    """Build to exactly 3 houses on all complete color groups, then stop.
+    """Build to exactly N houses on all complete color groups, then stop.
 
     This targets the optimal rent/cost sweet spot in standard Monopoly while
     hoarding houses to starve opponents of the 32-house supply.
+
+    Args:
+        target_houses: Maximum houses to build per property. Defaults to 3.
+        cash_reserve: Minimum cash buffer to maintain before spending. Defaults to 150.
     """
+
+    def __init__(
+        self,
+        target_houses: int = _TARGET_HOUSES,
+        cash_reserve: int = _CASH_RESERVE,
+    ) -> None:
+        self.target_houses = target_houses
+        self.cash_reserve = cash_reserve
 
     def should_buy_property(
         self,
@@ -30,19 +42,19 @@ class ThreeHousesRush(Strategy):
     ) -> bool:
         if _would_complete_group(player, square, game_state):
             return player.cash >= square.price
-        return player.cash >= square.price + _CASH_RESERVE
+        return player.cash >= square.price + self.cash_reserve
 
     def choose_properties_to_build(
         self,
         player: Player,
         game_state: GameState,
     ) -> list[BuildOrder]:
-        """Build toward 3 houses per property; never exceed 3.
+        """Build toward target_houses per property; never exceed target_houses.
 
         Priorities:
         1. Groups with the highest minimum house count go first.
         2. Within a group, build on least-developed properties first (even-building).
-        3. Building stops when remaining cash would drop below _CASH_RESERVE.
+        3. Building stops when remaining cash would drop below cash_reserve.
         """
         complete = _complete_unmortgaged_colors(player, game_state)
         sorted_colors = sorted(
@@ -52,7 +64,7 @@ class ThreeHousesRush(Strategy):
         )
 
         orders: list[BuildOrder] = []
-        available = player.cash - _CASH_RESERVE
+        available = player.cash - self.cash_reserve
 
         for color in sorted_colors:
             group = game_state.board.get_group(color)
@@ -63,7 +75,9 @@ class ThreeHousesRush(Strategy):
             for sq in sorted_group:
                 if available <= 0:
                     return orders
-                order = _build_order_for(sq, player, game_state, available)
+                order = _build_order_for(
+                    sq, player, game_state, available, self.target_houses
+                )
                 if order is not None:
                     orders.append(order)
                     available -= order.count * sq.house_cost
@@ -79,7 +93,7 @@ class ThreeHousesRush(Strategy):
             return JailDecision.ROLL_DOUBLES
         if player.goojf_cards:
             return JailDecision.USE_GOOJF
-        if player.cash >= _JAIL_FINE + _CASH_RESERVE:
+        if player.cash >= _JAIL_FINE + self.cash_reserve:
             return JailDecision.PAY_FINE
         return JailDecision.ROLL_DOUBLES
 
@@ -181,14 +195,23 @@ def _build_order_for(
     player: Player,
     game_state: GameState,
     available_cash: int,
+    target_houses: int = _TARGET_HOUSES,
 ) -> BuildOrder | None:
-    """Return a capped BuildOrder for sq, or None if nothing to build."""
+    """Return a capped BuildOrder for sq, or None if nothing to build.
+
+    Args:
+        sq: The color property to potentially build on.
+        player: The player who owns the property.
+        game_state: Current game state.
+        available_cash: Cash available for building (after reserve).
+        target_houses: Maximum houses to build on the property.
+    """
     po = game_state.property_ownership.get(sq.position)
     if po is None or po.owner is not player or po.is_mortgaged:
         return None
-    if po.has_hotel or po.houses >= _TARGET_HOUSES:
+    if po.has_hotel or po.houses >= target_houses:
         return None
-    needed = _TARGET_HOUSES - po.houses
+    needed = target_houses - po.houses
     affordable = available_cash // sq.house_cost
     count = min(needed, affordable)
     if count <= 0:

@@ -173,7 +173,9 @@ def sell_buildings(
     """
     from monopoly.strategies.types import SellOrder
 
-    results = sell_houses(player, [SellOrder(position=position, count=count)], game_state)
+    results = sell_houses(
+        player, [SellOrder(position=position, count=count)], game_state
+    )
     return results[0].cash_received if results else 0
 
 

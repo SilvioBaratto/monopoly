@@ -1,0 +1,333 @@
+2026-04-13 16:06:48,915 INFO Phase 2: reviewing issue #40 (agent=python-pro).
+2026-04-13 16:06:48,918 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:06:54,512 INFO msg #16: RateLimitEvent
+2026-04-13 16:07:00,030 INFO msg #18: assistant (78 chars)
+Now let me check the dependencies and existing codebase to understand context:
+2026-04-13 16:07:11,438 INFO msg #34: assistant (167 chars)
+Good — both `simulate.py` and `markov.py` don't exist yet (they'll be created by issues #30 and #34). Let me now review the issue thoroughly and provide my assessment.
+2026-04-13 16:07:36,394 INFO msg #41: assistant (2017 chars)
+Now I have a thorough understanding. Let me do the review:
+
+**Clarity:** ✅ Title is clear. Goal and context are well-explained. The "ultimate correctness check" framing is excellent.
+
+**Testability:** The ±0.1% criterion needs attention. This is an *absolute* tolerance — "within ±0.1% of the Markov stationary probability." But ±0.1% absolute on a probability that's ~0.02 (2%) for some rare squares means a tolerance of ±0.001, which is ±5% *relative*. For a square with probability ~0.06, that's ±0.001 which is ±1.7% relative. The criterion is actually from the requirements doc verbatim, so it's fine — but the AC should clarify whether this is absolute percentage points or relative percentage.
+
+**Chi-squared + per-square tolerance together:** Having both a chi-squared test AND a per-square ±0.1% test is slightly redundant but reasonable — one is a global statistical test, the other is a per-square sanity check. Good.
+
+**Design principles:**
+- **SRP:** ✅ Single responsibility — one cross-validation test file.
+- **TDD:** The AC says "All tests pass" but doesn't explicitly say "write tests first." However, this IS the test — so TDD is inherent.
+- **YAGNI/KISS:** ✅ No over-engineering.
+- **Scope:** This is appropriately scoped — it's a single test file with a few test functions. ~1 session.
+
+**Issues I see:**
+
+1. The ±0.1% tolerance is ambiguous — absolute percentage points vs relative. The requirements doc says "within ±0.1%" which most naturally means absolute percentage points (i.e., if analytical says 5.89%, simulated should be 5.79%–5.99%). The AC should clarify this.
+
+2. The "random walk mode" or "BuyNothing strategy" implementation note blurs scope — the test shouldn't need to implement new simulation modes. It should use whatever `simulate.py` (#34) provides. If a pure-movement mode is needed, that should be an AC of #34, not implemented here.
+
+3. Missing AC: no mention of seeding for reproducibility. A slow test that's non-deterministic is a CI headache.
+
+Let me update the issue:
+2026-04-13 16:08:03,455 INFO msg #46: assistant (556 chars)
+---
+
+```
+Issue #40: UPDATED
+Reason: Three ambiguities/gaps needed fixing: (1) ±0.1% tolerance was ambiguous between absolute and relative — clarified to absolute percentage points with example, (2) no reproducibility requirement — added fixed seed + minimum N documentation AC, (3) scope boundary with #34 was blurry — clarified the test must not implement simulation logic and must depend on #34 exposing a pure-movement mode.
+Actions taken: Updated issue body with clarified ACs and implementation notes; added review comment documenting all changes.
+```
+2026-04-13 16:08:03,822 INFO msg #47: ResultMessage (tokens_in=10 tokens_out=3015)
+2026-04-13 16:08:04,186 INFO SDK session complete (47 messages).
+2026-04-13 16:08:04,192 INFO Phase 2: issue #40 reviewed.
+2026-04-13 16:08:04,192 INFO Phase 2: reviewing issue #39 (agent=python-pro).
+2026-04-13 16:08:04,193 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:08:10,868 INFO msg #16: RateLimitEvent
+2026-04-13 16:08:16,769 INFO msg #18: assistant (104 chars)
+Now let me check the existing codebase to understand what's already implemented and verify dependencies.
+2026-04-13 16:08:47,589 INFO msg #32: assistant (883 chars)
+Now I have a clear picture. Let me analyze the issue:
+
+**Key findings:**
+
+1. **Missing dependency**: The issue says "Add to `src/monopoly/metrics.py` (same module as rent/ROI metrics)" — but `metrics.py` doesn't exist yet. It's created by issues #32 and #33 (both OPEN). This is an implicit dependency that must be declared.
+
+2. **TDD not explicit**: Acceptance criteria list tests but don't mandate the TDD workflow (tests-first).
+
+3. **Significance test underspecified**: The "significant (bool)" column says "z-test against Wilson CI" in context, but the acceptance criteria don't specify the exact test — is it checking if 1/N falls outside the Wilson CI, or a formal z-test? This should be pinned down.
+
+4. Everything else looks solid: SRP (single focus on win probability), KISS (Wilson CI is the standard approach), proper scope, clear output format.
+
+Let me update the issue:
+2026-04-13 16:09:12,312 INFO msg #37: assistant (558 chars)
+```
+Issue #39: UPDATED
+Reason: Missing explicit dependencies (#32, #33 create metrics.py), TDD not mandated, significance test underspecified, edge cases missing
+Actions taken:
+  - Added #32 and #33 as explicit dependencies (they create the metrics.py module this issue extends)
+  - Added TDD-first acceptance criterion
+  - Clarified significance = 1/N outside Wilson CI (no separate z-test)
+  - Added edge case criterion (0 wins, all wins, total=0)
+  - Made known-example test tolerance explicit (±0.001)
+  - Added review comment documenting all changes
+```
+2026-04-13 16:09:12,713 INFO msg #38: ResultMessage (tokens_in=8 tokens_out=3034)
+2026-04-13 16:09:13,233 INFO SDK session complete (38 messages).
+2026-04-13 16:09:13,237 INFO Phase 2: issue #39 reviewed.
+2026-04-13 16:09:13,238 INFO Phase 2: reviewing issue #38 (agent=python-pro).
+2026-04-13 16:09:13,239 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:09:22,598 INFO msg #16: RateLimitEvent
+2026-04-13 16:09:27,016 INFO msg #18: assistant (89 chars)
+Now let me check the dependencies and existing codebase to understand the context better.
+2026-04-13 16:09:56,088 INFO msg #32: assistant (87 chars)
+Now let me look at the strategy classes to understand what parameters are configurable:
+2026-04-13 16:10:05,015 INFO msg #35: assistant (1281 chars)
+Good. Now I have a thorough understanding of the issue and context. Let me perform the review.
+
+**Review Analysis:**
+
+1. **Clarity** — Title and goal are clear. Context is good.
+
+2. **Testability** — Several acceptance criteria are **experimental hypotheses**, not testable code criteria:
+   - "shows that 3 houses is optimal" — what if it isn't?
+   - "shows diminishing returns of cash hoarding" — outcome assumption
+   - "confirms orange as best target (or refutes it)" — ditto
+   - "identifies the turn threshold where staying in jail becomes advantageous" — ditto
+   
+   These should be rephrased as: "ablation runs and produces valid results for parameter X across range Y."
+
+3. **Dependencies** — #35 (parallel simulation) is mentioned in implementation notes but not in the formal Dependencies section.
+
+4. **Scope** — The function + data class + tests is a single coherent unit. The 4 specific ablation configurations are just parameterizations. Scope is reasonable.
+
+5. **SOLID** — Good. Single responsibility (ablation engine). Doesn't mix concerns.
+
+6. **"≥1000 games per parameter value"** — This is a runtime usage constraint, not a code acceptance criterion. The function takes `n_games` as a parameter; enforcing a minimum in code is YAGNI.
+
+Let me update the issue:
+2026-04-13 16:10:41,834 INFO msg #40: assistant (443 chars)
+```
+Issue #38: UPDATED
+Reason: Acceptance criteria contained untestable experimental hypotheses; missing formal dependency on #35; lacked explicit test criteria for data structure correctness.
+Actions taken: Updated issue body with testable criteria, added #35 dependency, added DataFrame/CI test criteria, removed minimum games constraint (YAGNI), pinned ablation.py as implementation target, added review comment documenting all changes.
+```
+2026-04-13 16:10:42,232 INFO msg #41: ResultMessage (tokens_in=9 tokens_out=3420)
+2026-04-13 16:10:42,533 INFO SDK session complete (41 messages).
+2026-04-13 16:10:42,537 INFO Phase 2: issue #38 reviewed.
+2026-04-13 16:10:42,538 INFO Phase 2: reviewing issue #37 (agent=python-pro).
+2026-04-13 16:10:42,539 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:10:48,236 INFO msg #16: RateLimitEvent
+2026-04-13 16:11:34,384 INFO msg #28: assistant (562 chars)
+Now I have a complete picture. Let me assess the issue:
+
+**Key findings:**
+1. The requirements.md says "Bradley-Terry **or** Elo" but the issue implements both as required — slight YAGNI concern, though both are small
+2. Acceptance criterion "Rankings agree qualitatively" is not guaranteed for arbitrary data — needs to be scoped to synthetic test data
+3. Implementation note puts everything in `tournament.py` which may exceed 500-line limit when combined with #36's round-robin code
+4. No explicit TDD ordering in acceptance criteria
+
+Let me update the issue:
+2026-04-13 16:12:00,514 INFO msg #33: assistant (429 chars)
+```
+Issue #37: UPDATED
+Reason: Three improvements needed — ambiguous acceptance criterion, missing file-size guard, missing TDD/edge-case criteria
+Actions taken: Updated issue body (scoped qualitative agreement to synthetic data, added 400-line file-size extraction guard, added TDD ordering + degenerate input test criterion, clarified Elo as complementary per requirements.md). Added review comment documenting all changes.
+```
+2026-04-13 16:12:00,830 INFO msg #34: ResultMessage (tokens_in=8 tokens_out=3121)
+2026-04-13 16:12:01,250 INFO SDK session complete (34 messages).
+2026-04-13 16:12:01,254 INFO Phase 2: issue #37 reviewed.
+2026-04-13 16:12:01,254 INFO Phase 2: reviewing issue #36 (agent=python-pro).
+2026-04-13 16:12:01,256 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:12:09,979 INFO msg #16: RateLimitEvent
+2026-04-13 16:12:31,490 INFO msg #25: assistant (79 chars)
+Now let me check the existing strategy classes to verify the list in the issue:
+2026-04-13 16:12:38,275 INFO msg #30: assistant (121 chars)
+Good — `simulate.py` doesn't exist yet (it's from #34/#35 which are still OPEN). Now I have enough context for my review.
+2026-04-13 16:13:03,538 INFO msg #35: assistant (430 chars)
+```
+Issue #36: UPDATED
+Reason: Multi-player rounds violated YAGNI, "margin of victory" was vague/untestable, 
+        missing explicit TDD criterion, hardcoded strategy list was unnecessary.
+Actions taken:
+  - Updated body: removed multi-player rounds, simplified API signature, 
+    replaced vague metrics with concrete ones, added TDD and serialization criteria
+  - Added review comment documenting all changes and rationale
+```
+2026-04-13 16:13:03,893 INFO msg #36: ResultMessage (tokens_in=8 tokens_out=2458)
+2026-04-13 16:13:04,202 INFO SDK session complete (36 messages).
+2026-04-13 16:13:04,204 INFO Phase 2: issue #36 reviewed.
+2026-04-13 16:13:04,205 INFO Phase 2: reviewing issue #35 (agent=python-pro).
+2026-04-13 16:13:04,206 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:13:10,247 INFO msg #16: RateLimitEvent
+2026-04-13 16:13:29,529 INFO msg #25: assistant (80 chars)
+Now let me review the existing codebase structure to check for any DRY concerns:
+2026-04-13 16:13:33,699 INFO msg #30: assistant (137 chars)
+Good — no existing parallelism code, so no DRY concern. Let me check the issue body of #34 to verify the interface this issue depends on:
+2026-04-13 16:13:47,081 INFO msg #34: assistant (88 chars)
+Now I have full context. Let me apply the review and update the issue with improvements:
+2026-04-13 16:14:20,394 INFO msg #39: assistant (640 chars)
+```
+Issue #35: UPDATED
+Reason: Good structure but needed edge-case hardening and more precise acceptance criteria
+Actions taken:
+  - Specified BatchResult fields explicitly (results, configs, wall_clock_seconds, n_workers, errors)
+  - Fixed os.cpu_count() None crash risk with fallback expression
+  - Capped n_workers at len(configs) to avoid idle workers
+  - Made wall-clock test more robust (@pytest.mark.slow, 80% margin, 8 configs)
+  - Added empty configs edge case criterion + test
+  - Added worker failure test criterion
+  - Added explicit TDD red-green-refactor mandate
+  - Added pickling implementation note for worker functions
+```
+2026-04-13 16:14:20,967 INFO msg #40: ResultMessage (tokens_in=8 tokens_out=3402)
+2026-04-13 16:14:21,276 INFO SDK session complete (40 messages).
+2026-04-13 16:14:21,279 INFO Phase 2: issue #35 reviewed.
+2026-04-13 16:14:21,280 INFO Phase 2: reviewing issue #34 (agent=python-pro).
+2026-04-13 16:14:21,281 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:14:27,809 INFO msg #16: RateLimitEvent
+2026-04-13 16:14:34,151 INFO msg #18: assistant (83 chars)
+Now let me understand the existing codebase to assess feasibility and dependencies:
+2026-04-13 16:15:13,891 INFO msg #32: assistant (82 chars)
+Now let me check the requirements to understand if numba is specifically required:
+2026-04-13 16:15:27,669 INFO msg #37: assistant (120 chars)
+Good — the requirements **do** mandate numba and 50k games/min. Now let me do the final assessment and update the issue:
+2026-04-13 16:15:58,152 INFO msg #40: assistant (497 chars)
+```
+Issue #34: TO SPLIT
+Reason: SRP violation — bundles batch runner, numba optimization, and strategy bridge into one issue. Scope exceeds a single work session (re-encoding entire game engine into numpy arrays for numba is 2-3 sessions alone).
+Actions taken: Added detailed review comment recommending 3-way split: (A) batch runner with existing Game engine, (B) numba-accelerated inner loop, (C) strategy bridge pattern. No edits to issue body — splitting decision deferred to orchestrator.
+```
+2026-04-13 16:15:58,908 INFO msg #41: ResultMessage (tokens_in=10 tokens_out=2475)
+2026-04-13 16:15:59,211 INFO SDK session complete (41 messages).
+2026-04-13 16:15:59,215 INFO Phase 2: issue #34 reviewed.
+2026-04-13 16:15:59,215 INFO Phase 2: reviewing issue #33 (agent=python-pro).
+2026-04-13 16:15:59,217 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:16:06,010 INFO msg #16: RateLimitEvent
+2026-04-13 16:16:37,352 INFO msg #25: assistant (64 chars)
+Now let me check the board data to understand the domain better:
+2026-04-13 16:16:50,990 INFO msg #34: assistant (110 chars)
+Good. The domain model has distinct types for ColorProperty, Railroad, and Utility. Now let me post my review:
+2026-04-13 16:17:05,158 INFO msg #37: assistant (331 chars)
+```
+Issue #33: OK
+Reason: Clear, testable, correctly scoped. Single responsibility (investment metrics), proper dependency on #32, 5 pure functions well-sized for one session.
+Actions taken: Added review comment confirming approval with a minor implementation note about level parameter semantics for railroads vs color groups.
+```
+2026-04-13 16:17:05,558 INFO msg #38: ResultMessage (tokens_in=9 tokens_out=2476)
+2026-04-13 16:17:05,897 INFO SDK session complete (38 messages).
+2026-04-13 16:17:05,901 INFO Phase 2: issue #33 reviewed.
+2026-04-13 16:17:05,901 INFO Phase 2: reviewing issue #32 (agent=python-pro).
+2026-04-13 16:17:05,903 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:17:15,236 INFO msg #16: RateLimitEvent
+2026-04-13 16:17:55,802 INFO msg #31: assistant (1812 chars)
+Now let me review the issue against all criteria:
+
+**Clarity:** ✅ Title is clear. Goal is well-explained with the formula. Context is sufficient.
+
+**Testability:** Mostly good, but two criteria are problematic:
+- "Orange group has the highest expected rent at the sweet spot (3 houses)" — This is an empirical claim that depends on the stationary distribution. It's a good sanity check but should be framed as a validation, not a hard test.
+- "Dark blue has the highest absolute expected rent at hotel level" — Same issue. These are known Monopoly facts but coupling them as acceptance criteria to implementation is fragile.
+
+**Design Principles:**
+- **SRP:** ✅ Single responsibility — compute expected rent metrics.
+- **TDD:** The criteria mention tests but don't explicitly say "tests written before code." Should clarify TDD approach.
+- **YAGNI/KISS:** ✅ No over-engineering.
+- **DRY:** ⚠️ The issue says to create `metrics.py` with rent computation logic. The existing `rent.py` already has rent tables lookup logic (`square.rents[level]`). The metrics module should reuse board data directly, not re-implement rent lookups. This should be explicit.
+
+**Dependencies:** ✅ Dependency on #30 (stationary distribution) is correct. However, #30 is still OPEN, so this issue is blocked.
+
+**Scope:** ✅ Reasonable for one work session — pure computation + DataFrame output + tests.
+
+**Issues found:**
+1. The acceptance criteria for "Orange highest at 3 houses" and "Dark blue highest at hotel" are empirical validations, not unit tests. They should be labeled as integration/validation checks.
+2. Missing: no mention of what happens if distribution is not yet computed (error handling).
+3. Issue #33 (ROI computation) also targets `metrics.py` — should clarify that both share the module but have separate functions.
+2026-04-13 16:18:46,754 INFO msg #36: assistant (942 chars)
+Issue #32: **UPDATED**
+
+**Reason:** The issue was mostly well-structured but had 5 areas needing improvement:
+
+1. **Missing DRY guidance** — No mention that `rent.py` already has rent lookup logic; added explicit note to reuse `square.rents` tables directly
+2. **Missing input validation** — No error handling criterion for invalid distribution arrays; added `ValueError` for mismatched sizes
+3. **Empirical claims as hard criteria** — "Orange highest at 3 houses" and "Dark Blue highest at hotel" were listed as acceptance criteria but depend on the stationary distribution; reframed as validation/sanity checks
+4. **TDD not explicit** — Added explicit TDD criterion (red → green → refactor)
+5. **Module sharing not documented** — Issue #33 also targets `metrics.py`; added note to design for extensibility without pre-building (YAGNI)
+
+**Actions taken:** Updated issue body with all 5 improvements, added review comment documenting changes.
+2026-04-13 16:18:47,139 INFO msg #37: ResultMessage (tokens_in=8 tokens_out=2756)
+2026-04-13 16:18:47,615 INFO SDK session complete (37 messages).
+2026-04-13 16:18:47,618 INFO Phase 2: issue #32 reviewed.
+2026-04-13 16:18:47,619 INFO Phase 2: reviewing issue #31 (agent=python-pro).
+2026-04-13 16:18:47,620 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:18:52,697 INFO msg #14: assistant (104 chars)
+
+
+I'll review GitHub Issue #31. Let me start by reading the issue and understanding the project context.
+2026-04-13 16:18:54,311 INFO msg #17: RateLimitEvent
+2026-04-13 16:18:58,397 INFO msg #21: assistant (62 chars)
+Now let me check the dependencies and existing test structure:
+2026-04-13 16:19:49,407 INFO msg #38: assistant (174 chars)
+I now have a clear picture. Let me review:
+
+**Key finding:** Issue #31 has significant overlap with Issue #30 — 4 acceptance criteria are duplicated. Let me update the issue.
+2026-04-13 16:20:32,762 INFO msg #43: assistant (539 chars)
+```
+Issue #31: UPDATED
+Reason: DRY violation (4 duplicated criteria from #30), misleading Hypothesis guidance, missing edge case tests
+Actions taken: 
+  - Removed 4 overlapping acceptance criteria already in #30
+  - Clarified extend-not-duplicate relationship with #30's test file
+  - Removed Hypothesis guidance (deterministic matrix, not applicable)
+  - Added matrix shape and Go-To-Jail row redirection checks
+  - Added structural test for card-enabled vs card-disabled distributions
+  - Added review comment documenting all changes
+```
+2026-04-13 16:20:33,183 INFO msg #44: ResultMessage (tokens_in=8 tokens_out=3749)
+2026-04-13 16:20:33,502 INFO SDK session complete (44 messages).
+2026-04-13 16:20:33,505 INFO Phase 2: issue #31 reviewed.
+2026-04-13 16:20:33,506 INFO Phase 2: reviewing issue #30 (agent=python-pro).
+2026-04-13 16:20:33,507 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:20:39,143 INFO msg #16: RateLimitEvent
+2026-04-13 16:21:07,196 INFO msg #23: assistant (1246 chars)
+Now let me assess the issue against all review criteria:
+
+**Clarity:** ✅ Title is precise. Goal is self-contained. Context includes reference values with sources.
+
+**Testability:** ✅ All acceptance criteria are concrete and measurable (specific numerical tolerances, sum constraints, type checks).
+
+**Design Principles:**
+- **SRP:** ✅ Single responsibility — stationary distribution computation.
+- **TDD:** ✅ Tests called for explicitly with parametrized known values.
+- **YAGNI:** ⚠️ Minor concern — two computation methods (eigenvector + power iteration) could be seen as over-engineering, but for a mathematical analysis project, cross-validation between methods is standard practice and justified.
+- **KISS/DRY:** ✅ Straightforward linear algebra, no speculative abstractions.
+
+**Dependencies:** ✅ #29 is the sole dependency and it's correctly declared. `markov.py` doesn't exist yet (will be created by #29).
+
+**Scope:** ✅ Right-sized for one work session — two functions + tests.
+
+**One improvement needed:** The validation tolerances (±0.1%) assume the transition matrix from #29 is perfectly correct. The issue should clarify this assumption to avoid confusion during implementation if values don't match due to upstream modeling choices.
+2026-04-13 16:21:15,821 INFO msg #26: assistant (348 chars)
+```
+Issue #30: OK
+Reason: Issue is clear, testable, correctly scoped with proper dependency on #29. Dual computation methods justified for mathematical cross-validation. Minor note added about validation tolerances depending on upstream matrix correctness.
+Actions taken: Added review comment confirming approval with dependency-awareness note.
+```
+2026-04-13 16:21:16,195 INFO msg #27: ResultMessage (tokens_in=5 tokens_out=1564)
+2026-04-13 16:21:16,514 INFO SDK session complete (27 messages).
+2026-04-13 16:21:16,517 INFO Phase 2: issue #30 reviewed.
+2026-04-13 16:21:16,517 INFO Phase 2: reviewing issue #29 (agent=python-pro).
+2026-04-13 16:21:16,518 INFO SDK session starting (model=claude-opus-4-6).
+2026-04-13 16:21:22,426 INFO msg #16: RateLimitEvent
+2026-04-13 16:22:42,176 INFO msg #51: assistant (147 chars)
+Good. Chance at {7, 22, 36} and CC at {2, 17, 33} — matches the issue. Now let me also check Railroads and Utilities positions for "nearest" logic:
+2026-04-13 16:22:46,248 INFO msg #54: assistant (84 chars)
+Now I have all the context I need. Let me formulate the review and update the issue.
+2026-04-13 16:23:57,375 INFO msg #61: assistant (542 chars)
+```
+Issue #29: UPDATED
+Reason: State space was incorrectly specified as 40×40 when the described mechanics (multi-turn jail, triple doubles) require 43 states. Acceptance criteria had vague/untestable items. Nearest Railroad/Utility resolution was implicit.
+Actions taken: Updated title (40→43 states), rewrote body with correct 43-state model, explicit nearest-target resolution table, sharpened all acceptance criteria to be concretely testable, clarified static YAML parsing vs Deck class, added review comment documenting all changes.
+```
+2026-04-13 16:23:57,726 INFO msg #62: ResultMessage (tokens_in=879 tokens_out=6400)
+2026-04-13 16:23:58,042 INFO SDK session complete (62 messages).
+2026-04-13 16:23:58,044 INFO Phase 2: issue #29 reviewed.

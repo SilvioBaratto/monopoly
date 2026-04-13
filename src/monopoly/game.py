@@ -20,7 +20,7 @@ from monopoly.board import Board
 from monopoly.buildings import execute_build_orders
 from monopoly.cards import load_decks
 from monopoly.jail import resolve_jail_turn
-from monopoly.state import GameState
+from monopoly.state import GameState, Player
 from monopoly.turn import resolve_turn
 
 from .strategies.base import Strategy
@@ -51,7 +51,7 @@ class GameResult:
         player_stats: Per-player stats keyed by player name.
     """
 
-    winner: object  # Player | None
+    winner: Player | None
     turns_played: int
     player_stats: dict[str, PlayerStats]
 
