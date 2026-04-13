@@ -1,16 +1,16 @@
 {
   "mode": "multi-cycle",
   "started_at": "2026-04-13T10:19:49Z",
-  "updated_at": "2026-04-13T11:30:06Z",
-  "current_cycle": 1,
+  "updated_at": "2026-04-13T14:00:32Z",
+  "current_cycle": 2,
   "cycles": [
     {
       "id": 1,
       "name": "Data & Board Model",
       "milestone_number": 1,
       "milestone_title": "Cycle 1 \u2014 Data & Board Model",
-      "status": "open",
-      "phase": 5,
+      "status": "completed",
+      "phase": 7,
       "issues": [
         {
           "number": 10,
@@ -70,11 +70,102 @@
     {
       "id": 2,
       "name": "Game Engine & Strategies",
-      "milestone_number": null,
+      "milestone_number": 2,
       "milestone_title": "Cycle 2 \u2014 Game Engine & Strategies",
       "status": "open",
-      "phase": 0,
-      "issues": [],
+      "phase": 5,
+      "issues": [
+        {
+          "number": 27,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 26,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 25,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 24,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 23,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 22,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 21,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 20,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 19,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 18,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 17,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 16,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 15,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 14,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 13,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 12,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 11,
+          "status": "closed",
+          "agent": "python-pro"
+        },
+        {
+          "number": 28,
+          "status": "closed",
+          "agent": "python-pro"
+        }
+      ],
       "commit_sha": null,
       "depends_on": [
         1

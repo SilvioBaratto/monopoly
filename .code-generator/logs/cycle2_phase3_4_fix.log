@@ -1,0 +1,58 @@
+2026-04-13 15:33:03,674 INFO Phase 3/4: implementing issue #28 (agent=python-pro).
+2026-04-13 15:33:03,679 INFO SDK session starting (model=claude-sonnet-4-6).
+2026-04-13 15:33:10,069 INFO msg #16: RateLimitEvent
+2026-04-13 15:35:03,194 INFO msg #42: assistant (94 chars)
+Now I understand the full picture. Let me run the current tests first to confirm the baseline:
+2026-04-13 15:36:18,204 INFO msg #55: assistant (317 chars)
+Now I have full context. The refactoring is clear:
+
+1. `execute_build_orders` → thin wrapper calling `build_houses` and discarding results (removes `_execute_single_build` + `_build_one_house`)
+2. `sell_buildings` → thin wrapper calling `sell_houses` via `SellOrder`, returning `cash_received`
+
+Let me implement this:
+2026-04-13 15:36:28,998 INFO msg #58: assistant (143 chars)
+Now remove `_owns_full_group` and `_build_one_house` — wait, `_owns_full_group` is still used by `_validate_build_preconditions`. Let me check:
+2026-04-13 15:36:34,646 INFO msg #62: assistant (143 chars)
+Good. `_owns_full_group` and `_even_build_allows` are still used by the result API. Only `_build_one_house` is now dead code. Let me remove it:
+2026-04-13 15:36:43,856 INFO msg #67: assistant (47 chars)
+Now rewrite `sell_buildings` as a thin wrapper:
+2026-04-13 15:37:03,113 INFO msg #76: assistant (114 chars)
+Now `sell_buildings` calls `sell_houses` but `sell_houses` is defined *after* it. Let me check the file structure:
+2026-04-13 15:37:14,960 INFO msg #84: assistant (25 chars)
+Now let me run the tests:
+2026-04-13 15:58:08,842 INFO msg #152: assistant (264 chars)
+The test is hanging — the `_raise_cash_via_building_sales` loop in `bankruptcy.py` runs forever because my `sell_buildings` wrapper now returns `0` when `_even_sell_allows` blocks a sale (instead of always succeeding). Let me fix the loop guard in `bankruptcy.py`:
+2026-04-13 15:58:19,970 INFO msg #157: assistant (54 chars)
+All 74 tests pass. Now let me run the full test suite:
+2026-04-13 15:58:35,742 INFO msg #160: assistant (80 chars)
+All 626 tests pass. Let me do a final check on the line count of `buildings.py`:
+2026-04-13 15:58:46,140 INFO msg #164: assistant (70 chars)
+Down from 725 to 592 lines. Let me verify the final state of the file:
+2026-04-13 15:58:49,642 INFO msg #167: assistant (46 chars)
+The file is clean. Now let me close the issue:
+2026-04-13 15:59:13,478 INFO msg #172: assistant (1134 chars)
+Issue #28 is done. Here's a summary of what was implemented:
+
+## Refactoring: Dual Build/Sell API Consolidation
+
+**`buildings.py`** shrunk from 725 → 592 lines (−133 lines):
+
+1. **Removed dead code** — `_execute_single_build` and `_build_one_house` (the private helpers backing the old simple API) were deleted entirely since `build_houses`/`sell_houses` already contain all the same logic.
+
+2. **`execute_build_orders`** → 1-line thin wrapper:
+   ```python
+   build_houses(player, build_orders, game_state)
+   ```
+
+3. **`sell_buildings`** → thin wrapper via `SellOrder`:
+   ```python
+   results = sell_houses(player, [SellOrder(position=position, count=count)], game_state)
+   return results[0].cash_received if results else 0
+   ```
+
+**`bankruptcy.py`** — 1-line fix for a latent infinite loop exposed by the refactoring: the `while po.houses > 0` loop in `_raise_cash_via_building_sales` now `break`s when `sell_buildings` returns `0`, which occurs when the even-selling rule blocks a position (the old direct implementation always consumed a house, so this was previously unreachable).
+
+All **626 tests pass** with no regressions.
+2026-04-13 15:59:13,954 INFO msg #173: ResultMessage (tokens_in=2949 tokens_out=23295)
+2026-04-13 15:59:19,286 INFO SDK session complete (173 messages).
+2026-04-13 15:59:19,291 INFO Phase 3/4: issue #28 closed.
