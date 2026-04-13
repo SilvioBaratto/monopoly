@@ -1,0 +1,1 @@
+"""Monopoly probability analysis package."""

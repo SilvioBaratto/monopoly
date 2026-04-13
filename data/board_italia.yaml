@@ -1,0 +1,119 @@
+- position: 0
+  name_it: "Via!"
+
+- position: 1
+  name_it: "Vicolo Corto"
+
+- position: 2
+  name_it: "Probabilità"
+
+- position: 3
+  name_it: "Vicolo Stretto"
+
+- position: 4
+  name_it: "Tassa Patrimoniale"
+
+- position: 5
+  name_it: "Stazione Sud"
+
+- position: 6
+  name_it: "Bastioni Gran Sasso"
+
+- position: 7
+  name_it: "Imprevisti"
+
+- position: 8
+  name_it: "Viale Monte Rosa"
+
+- position: 9
+  name_it: "Viale Vesuvio"
+
+- position: 10
+  name_it: "Prigione"
+
+- position: 11
+  name_it: "Via Accademia"
+
+- position: 12
+  name_it: "Società Elettrica"
+
+- position: 13
+  name_it: "Corso Ateneo"
+
+- position: 14
+  name_it: "Piazza Università"
+
+- position: 15
+  name_it: "Stazione Ovest"
+
+- position: 16
+  name_it: "Via Verdi"
+
+- position: 17
+  name_it: "Probabilità"
+
+- position: 18
+  name_it: "Corso Raffaello"
+
+- position: 19
+  name_it: "Piazza Dante"
+
+- position: 20
+  name_it: "Parcheggio Gratuito"
+
+- position: 21
+  name_it: "Via Marco Polo"
+
+- position: 22
+  name_it: "Imprevisti"
+
+- position: 23
+  name_it: "Corso Magellano"
+
+- position: 24
+  name_it: "Largo Colombo"
+
+- position: 25
+  name_it: "Stazione Nord"
+
+- position: 26
+  name_it: "Viale Costantino"
+
+- position: 27
+  name_it: "Viale Traiano"
+
+- position: 28
+  name_it: "Società Acqua Potabile"
+
+- position: 29
+  name_it: "Piazza Giulio Cesare"
+
+- position: 30
+  name_it: "In Prigione!"
+
+- position: 31
+  name_it: "Via Roma"
+
+- position: 32
+  name_it: "Corso Impero"
+
+- position: 33
+  name_it: "Probabilità"
+
+- position: 34
+  name_it: "Largo Augusto"
+
+- position: 35
+  name_it: "Stazione Est"
+
+- position: 36
+  name_it: "Imprevisti"
+
+- position: 37
+  name_it: "Viale dei Giardini"
+
+- position: 38
+  name_it: "Tassa di Lusso"
+
+- position: 39
+  name_it: "Parco della Vittoria"
