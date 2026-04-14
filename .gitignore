@@ -29,5 +29,8 @@ env/
 .vscode/
 *.swp
 
-# Generated figures / video assets
-figures/
+# Code generator workspace (local only)
+.code-generator/
+
+# Local narrative / figure-generation scripts
+scripts/
